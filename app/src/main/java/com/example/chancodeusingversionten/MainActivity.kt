@@ -11,7 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
+import com.mapbox.maps.Style
 import com.mapbox.maps.dsl.cameraOptions
+import com.mapbox.maps.extension.style.layers.generated.rasterLayer
+import com.mapbox.maps.extension.style.sources.generated.rasterSource
+import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
@@ -25,25 +29,75 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        mapView = MapView(this)
-        setContentView(mapView)
+//        mapView = MapView(this)
+//        setContentView(mapView)
+        setContentView(R.layout.activity_main)
+        mapView = findViewById(R.id.map_view)
 
-//        mapView?.getMapboxMap()?.loadStyleUri(Style.MAPBOX_STREETS,
-//            object : Style.OnStyleLoaded {
-//                override fun onStyleLoaded(style: Style) {
-//                    addAnnotationToMap()
-//                }
-//            })
+        //original
+//        mapView?.getMapboxMap()?.loadStyleUri(
+//           "https://maps-json.onemap.sg/Default.json"
+//        ) {
+//            addAnnotationToMap()
+//        }
 
-        mapView?.getMapboxMap()?.loadStyleUri("https://maps-json.onemap.sg/Default.json"
-        ) {
-            addAnnotationToMap()
+//Suggestion 1:   load OneMap BaseMap style using  loadstylejson() function and pass your base style json as string
+//        mapView?.getMapboxMap()?.loadStyleJson("{\n" +
+//                "\"version\":10,\n" +
+//                "\"name\":\"Default\",\n" +
+//                "\"sprite\":\"mapbox://sprites/sla/cj7u5gsz51v7n2ss6fx5nt4bt?refresh=true\",\n" +
+//                "\"glyphs\":\"mapbox://fonts/sla/{fontstack}/{range}.pbf?refresh=true\",\n" +
+//                "\"sources\":{\n" +
+//                "\"Default\":{\n" +
+//                "\"type\":\"raster\",\n" +
+//                "\"tiles\":[\n" +
+//                "\"https://maps-a.onemap.sg/v3/Default_HD/{z}/{x}/{y}.png?refresh=true\",\n" +
+//                "\"https://maps-b.onemap.sg/v3/Default_HD/{z}/{x}/{y}.png?refresh=true\",\n" +
+//                "\"https://maps-c.onemap.sg/v3/Default_HD/{z}/{x}/{y}.png?refresh=true\"\n" +
+//                "],\n" +
+//                "\"tileSize\":128,\n" +
+//                "\"bounds\":[\n" +
+//                "103.596,\n" +
+//                "1.1443,\n" +
+//                "104.4309,\n" +
+//                "1.4835\n" +
+//                "]\n" +
+//                "}\n" +
+//                "},\n" +
+//                "\"layers\":[\n" +
+//                "{\n" +
+//                "\"id\":\"Default\",\n" +
+//                "\"source\":\"Default\",\n" +
+//                "\"type\":\"raster\"\n" +
+//                "}\n" +
+//                "]\n" +
+//                "}") {
+//            addAnnotationToMap()
+//        }
 
-        }
+//Suggestion 2:  save the style json as .json file in android assets folder and load using mapView.getMapboxMap().loadStyleUri()
+//        mapView?.getMapboxMap()?.loadStyleUri("asset://Default.json") {
+//            addAnnotationToMap()
+//        }
+//"https://maps-json.onemap.sg/Default.json"
+//Suggestion 3: use both Mapbox Style (e.g Style.LIGHT) and OneMap style then add raster source separately once the style is loaded. here is the documentation and examples how you can work with rasterLayer.
+        mapView?.getMapboxMap()?.loadStyle(
+            style(Style.LIGHT) {
+                +rasterSource("raster-source") {
+                    tileSize(128L)
+                    tiles(listOf("https://maps-a.onemap.sg/v3/Default_HD/{z}/{x}/{y}.png?refresh=true",
+                                    "https://maps-b.onemap.sg/v3/Default_HD/{z}/{x}/{y}.png?refresh=true",
+                                    "https://maps-c.onemap.sg/v3/Default_HD/{z}/{x}/{y}.png?refresh=true"))
+                    minzoom(11L) // change according to the zoom level supported by OneMap raster source
+                    maxzoom(20L)
 
+                }
+                +rasterLayer("raster-layer", "raster-source") {
+                    addAnnotationToMap()
+                }
+            }
+        )
 
-//        bearing(180.0) // Rotate the camera
-//        pitch(50.0) // Set the camera pitch
     }
 
     private fun addAnnotationToMap() {
@@ -63,20 +117,21 @@ class MainActivity : AppCompatActivity() {
                 .withIconImage(it)
 // Add the resulting pointAnnotation to the map.
             pointAnnotationManager?.create(pointAnnotationOptions)
-            mapView?.getMapboxMap()?.flyTo(
-                cameraOptions {
-                    center(
-                        Point.fromLngLat(
-                            103.8012641,
-                            1.2739864
-                        )
-                    ) // Sets the new camera position on click point
-                    zoom(19.0) // Sets the zoom
-                },
-                mapAnimationOptions {
-                    duration(7000)
-                }
-            )
+
+//            mapView?.getMapboxMap()?.flyTo(
+//                cameraOptions {
+//                    center(
+//                        Point.fromLngLat(
+//                            103.8012641,
+//                            1.2739864
+//                        )
+//                    ) // Sets the new camera position on click point
+//                    zoom(11.0) // Sets the zoom
+//                },
+//                mapAnimationOptions {
+//                    duration(7000)
+//                }
+//            )
         }
     }
 
